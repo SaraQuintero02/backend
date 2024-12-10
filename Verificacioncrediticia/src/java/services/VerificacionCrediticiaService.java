@@ -11,28 +11,38 @@ import javax.ws.rs.PathParam;
 @Path("verificacion")
 public class VerificacionCrediticiaService {
 
+    private static final String BLACKLIST_SERVICE_URL = "http://localhost:8080/webresources/generic/buscar/";
+    private static final String DATACREDITO_SERVICE_URL = "http://localhost:8080/webresources/datacredito/consulta/";
+
     @GET
     @Path("/verificar/{idCliente}")
     public String verificarCliente(@PathParam("idCliente") String idCliente) {
-        // Paso 1: Consultar BlackList
-        if (consultarBlackList(idCliente)) {
-            return "Cliente está en la BlackList - Solicitud rechazada";
-        }
+        try {
+            // Paso 1: Consultar BlackList
+            if (consultarBlackList(idCliente)) {
+                return "Cliente está en la BlackList - Solicitud rechazada";
+            }
 
-        if (!consultarDataCredito(idCliente)) {
-            return "Cliente no aprobado por DataCredito - Solicitud rechazada";
-        }
+            // Paso 2: Consultar DataCredito
+            if (!consultarDataCredito(idCliente)) {
+                return "Cliente no aprobado por DataCredito - Solicitud rechazada";
+            }
 
-        return "Cliente aprobado - Verificación exitosa";
+            return "Cliente aprobado - Verificación exitosa";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Error en la verificación del cliente: " + e.getMessage();
+        }
     }
 
     // Método para consumir el servicio BlackList
     private boolean consultarBlackList(String idCliente) {
         try {
-            // URL del servicio BlackList (ajusta si es necesario)
-            URL url = new URL("http://localhost:8080/webresources/generic/buscar/" + idCliente);
+            URL url = new URL(BLACKLIST_SERVICE_URL + idCliente);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
+            conn.setConnectTimeout(5000); // Tiempo de espera para la conexión (5 segundos)
+            conn.setReadTimeout(5000); // Tiempo de espera para la lectura (5 segundos)
 
             if (conn.getResponseCode() == 200) {
                 try (BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
@@ -43,16 +53,17 @@ public class VerificacionCrediticiaService {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return false; // Asume no está en BlackList si hay un error
+        return false; // Asume que no está en BlackList si hay error
     }
 
-    // Método para consumir el servicio DataCredito (simulado)
+    // Método para consumir el servicio DataCredito
     private boolean consultarDataCredito(String idCliente) {
         try {
-            // URL del servicio DataCredito (ajusta si es necesario)
-            URL url = new URL("http://localhost:8080/webresources/datacredito/consulta/" + idCliente);
+            URL url = new URL(DATACREDITO_SERVICE_URL + idCliente);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
+            conn.setConnectTimeout(5000); // Tiempo de espera para la conexión (5 segundos)
+            conn.setReadTimeout(5000); // Tiempo de espera para la lectura (5 segundos)
 
             if (conn.getResponseCode() == 200) {
                 try (BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {

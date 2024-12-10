@@ -21,6 +21,7 @@ public class ApplicationConfig extends javax.ws.rs.core.Application {
      */
     private void addRestResourceClasses(Set<Class<?>> resources) {
         resources.add(services.DataCreditoService.class);
+        resources.add(services.GenerarEmail.class);
         resources.add(services.Operaciones.class);
         resources.add(services.VerificacionCrediticiaService.class);
     }
